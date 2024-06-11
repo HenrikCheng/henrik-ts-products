@@ -52,7 +52,7 @@ const UsersList: React.FC = () => {
   console.log("🚀 ~ data:", data);
 
   return (
-    <div className="p-4">
+    <div className="p-4 container">
       <CurrentUserDisplay
         users={users}
         currentUser={currentUser}
