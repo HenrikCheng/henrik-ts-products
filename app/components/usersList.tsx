@@ -62,8 +62,9 @@ const UsersList: React.FC = () => {
         </select>
 
         <button
-          className="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => setCurrentUser(null)}
+          disabled={!currentUser}
         >
           Reset
         </button>
