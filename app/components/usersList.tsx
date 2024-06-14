@@ -1,24 +1,23 @@
 "use client";
 import React, { useState, ChangeEvent } from "react";
 import useSWR from "swr";
-import CurrentUserDisplay from "./currentUserDisplay";
-import Image from "next/image";
 
-export interface Product {
+export interface Insurance {
   id: number;
   title: string;
-  thumbnail: string;
+  preamble: string;
+  body: string;
+  url: string;
 }
 
-export interface User {
-  id: string;
-  products: number[];
+export interface Users {
+  [key: string]: number[];
 }
 
 const useProducts = () => {
   const fetcher = (url: string) => fetch(url).then((res) => res.json());
-  const { data, error } = useSWR<{ products: Product[] }>(
-    "https://dummyjson.com/products?limit=6",
+  const { data, error } = useSWR(
+    "https://my-json-server.typicode.com/proactivehealth/work-test-sample/insurances",
     fetcher
   );
   return { data, error };
@@ -26,53 +25,70 @@ const useProducts = () => {
 
 const UsersList: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<null | string>(null);
+
   const { data, error } = useProducts();
 
   if (error) return <div>Error loading data</div>;
   if (!data) return <div>Loading...</div>;
 
-  const users: User[] = [
-    { id: "1", products: [1, 2] },
-    { id: "2", products: [3, 4] },
-    { id: "3", products: [1, 4, 5] },
-  ];
+  const users: Users = {
+    "1": [1, 2],
+    "2": [3, 4],
+    "3": [1, 3, 4],
+  };
+
+  const filteredInsurances = currentUser
+    ? data.filter((insurance: Insurance) =>
+        users[currentUser].includes(insurance.id)
+      )
+    : data;
 
   return (
     <div className="p-4 container">
-      <CurrentUserDisplay
-        users={users}
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-      />
+      <div className="p-4 flex flex-row justify-between">
+        <select
+          onChange={(e) => setCurrentUser(e.target.value)}
+          value={currentUser ?? ""}
+          className="text-black"
+        >
+          <option value="" disabled>
+            Select a user
+          </option>
+          {Object.entries(users).map(([userId, userValues]) => (
+            <option value={userId} key={userId}>
+              User: {userId}
+            </option>
+          ))}
+        </select>
 
-      <div>
-        <h2>All products</h2>
-        <ol className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
-          {data.products.map((product) => {
-            const isActive = currentUser
-              ? users
-                  .find((user) => user.id === currentUser)
-                  ?.products.includes(product.id)
-              : false;
-            return (
-              <li
-                key={product.id}
-                className={`border border-solid border-gray-100 p-6 md:p-8 ${
-                  isActive ? "bg-gray-700" : ""
-                }`}
-              >
-                <h4>{product.title}</h4>
-                <Image
-                  src={product.thumbnail}
-                  width={500}
-                  height={500}
-                  alt="Picture of the author"
-                />
-              </li>
-            );
-          })}
-        </ol>
+        <button
+          className="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCurrentUser(null)}
+        >
+          Reset
+        </button>
       </div>
+
+      {filteredInsurances.map((insurance: Insurance) => {
+        return (
+          <div
+            key={insurance.id}
+            className="border border-solid border-black m-4 p-4"
+          >
+            <h3 className="text-lg text-pink-700">{insurance.title}</h3>
+            <p className="font-semibold">{insurance.preamble}</p>
+            <p>{insurance.body}</p>
+            <a
+              className="underline hover:text-pink-700"
+              href={insurance.url}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Läs mer
+            </a>
+          </div>
+        );
+      })}
     </div>
   );
 };
